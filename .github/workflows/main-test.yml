@@ -19,6 +19,21 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+      db:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd="pg_isready -U testuser -d testdb"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 17
@@ -27,6 +42,12 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
+    - name: Set environment variables
+      run: |
+        echo "DB_HOST=localhost" >> $GITHUB_ENV
+        echo "DB_PORT=5432" >> $GITHUB_ENV
+        echo "DB_NAME=testdb" >> $GITHUB_ENV
+        echo "DB_USER=testuser" >> $GITHUB_ENV
+        echo "DB_PASSWORD=testpassword" >> $GITHUB_ENV
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-    
